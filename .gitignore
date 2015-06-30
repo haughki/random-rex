@@ -1,0 +1,8 @@
+build/
+.gradle/
+mods/
+data/
+gradle/
+.idea/
+random-rex.iml
+
