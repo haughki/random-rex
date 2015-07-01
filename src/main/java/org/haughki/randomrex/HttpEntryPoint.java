@@ -28,6 +28,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.CookieHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 import org.haughki.randomrex.util.Runner;
 
@@ -59,6 +60,7 @@ public class HttpEntryPoint extends AbstractVerticle {
 
         Router router = Router.router(vertx);
 
+        router.route().handler(CookieHandler.create());
         router.route().handler(BodyHandler.create());
         router.get("/login").handler(handlers::handleLogin);
         router.put("/callback").handler(handlers::handleCallback);
@@ -67,7 +69,7 @@ public class HttpEntryPoint extends AbstractVerticle {
         router.route().handler(StaticHandler.create());  // defaults to webroot
 
         vertx.createHttpServer().requestHandler(router::accept)
-                .listen(8989, "localhost", new AsyncResultHandler<HttpServer>() {
+                .listen(8888, "localhost", new AsyncResultHandler<HttpServer>() {
                     @Override
                     public void handle(AsyncResult<HttpServer> asyncResult) {
                         System.out.println("Server started. Listening? --> " + asyncResult.succeeded());
