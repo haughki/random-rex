@@ -1,21 +1,22 @@
 apply plugin: 'java'
 apply plugin: 'idea'
 
+group 'org.haughki'
+version '1.0-SNAPSHOT'
+
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
-
-version = '1.0'
 
 repositories {
     mavenCentral()
 }
 
-def vertxVersion = '2.1.5'
+def vertxVersion = '3.0.0'
 
 dependencies {
     compile 'io.vertx:vertx-core:' + vertxVersion
-    compile 'io.vertx:vertx-platform:' + vertxVersion
-    compile 'io.vertx:mod-mongo-persistor:2.1.1'
+    compile 'io.vertx:vertx-web:' + vertxVersion
+    compile 'io.vertx:vertx-codegen:' + vertxVersion
 
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }
