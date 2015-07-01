@@ -16,6 +16,8 @@
 
 package org.haughki.randomrex;
 
+import com.google.inject.Guice;
+import com.google.inject.Inject;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.AsyncResultHandler;
@@ -33,32 +35,36 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="parker.hawkeye@gmail.com">Hawkeye Parker</a>. Origin from
+ *         sample code by <a href="http://tfox.org">Tim Fox</a>.
  */
-public class SimpleREST extends AbstractVerticle {
+public class HttpEntryPoint extends AbstractVerticle {
 
     // Convenience method so you can run it in your IDE
     public static void main(String[] args) {
-        Runner.runExample(SimpleREST.class);
+        Runner.runExample(HttpEntryPoint.class);
     }
 
     private Map<String, JsonObject> products = new HashMap<>();
+
+    @Inject
+    private RequestHandlers handlers;
 
     @Override
     public void start() {
         System.out.println("Starting server...");
         System.out.println("user.dir:" + System.getProperty("user.dir"));
 
-        setUpInitialData();
+        Guice.createInjector(new DependencyConfiguration()).injectMembers(this);
 
         Router router = Router.router(vertx);
 
         router.route().handler(BodyHandler.create());
-        router.get("/products/:productID").handler(this::handleGetProduct);
-        router.put("/products/:productID").handler(this::handleAddProduct);
-        router.get("/products").handler(this::handleListProducts);
+        router.get("/login").handler(handlers::handleLogin);
+        router.put("/callback").handler(handlers::handleCallback);
+        router.get("/refreshToken").handler(handlers::handleRefreshToken);
 
-        router.route().handler(StaticHandler.create());
+        router.route().handler(StaticHandler.create());  // defaults to webroot
 
         vertx.createHttpServer().requestHandler(router::accept)
                 .listen(8989, "localhost", new AsyncResultHandler<HttpServer>() {
@@ -108,15 +114,5 @@ public class SimpleREST extends AbstractVerticle {
 
     private void sendError(int statusCode, HttpServerResponse response) {
         response.setStatusCode(statusCode).end();
-    }
-
-    private void setUpInitialData() {
-        addProduct(new JsonObject().put("id", "prod3568").put("name", "Egg Whisk").put("price", 3.99).put("weight", 150));
-        addProduct(new JsonObject().put("id", "prod7340").put("name", "Tea Cosy").put("price", 5.99).put("weight", 100));
-        addProduct(new JsonObject().put("id", "prod8643").put("name", "Spatula").put("price", 1.00).put("weight", 80));
-    }
-
-    private void addProduct(JsonObject product) {
-        products.put(product.getString("id"), product);
     }
 }
