@@ -20,7 +20,12 @@ dependencies {
     compile 'com.google.inject:guice:4.0'
     compile 'org.apache.httpcomponents:httpclient:4.5'
 
-    testCompile group: 'junit', name: 'junit', version: '4.11'
+    testCompile 'io.vertx:vertx-unit:' + vertxVersion
+    //testCompile 'io.vertx:examples-utils:' + vertxVersion
+    testCompile 'junit:junit:4.12'
+    //testCompile 'io.vertx:testtools:2.0.3-final'
+    testCompile 'org.mockito:mockito-all:1.10.19'
+
 }
 
 idea {

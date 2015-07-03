@@ -1,10 +1,12 @@
 package org.haughki.randomrex.impl;
 
+import com.google.inject.Inject;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.Cookie;
 import io.vertx.ext.web.RoutingContext;
 import org.apache.http.client.utils.URIBuilder;
 import org.haughki.randomrex.RequestHandlers;
+import org.haughki.randomrex.core.SecurityUtils;
 
 import java.net.URISyntaxException;
 
@@ -15,6 +17,13 @@ public class RequestHandlersImpl implements RequestHandlers {
     private final static String REDIRECT_URI = "http://localhost:8888/callback";
     private final static String STATE_KEY = "spotify_auth_state";
 
+    private final SecurityUtils securityUtils;
+
+    @Inject
+    public RequestHandlersImpl(SecurityUtils securityUtils) {
+        this.securityUtils = securityUtils;
+    }
+
     @Override
     public void handleLogin(RoutingContext context) {
 
@@ -22,7 +31,7 @@ public class RequestHandlersImpl implements RequestHandlers {
         // AND send it on the query string? Also seems like we'd need to at least remember
         // (persist) sent nonce's and verify against incoming reqs.  Really should
         // correlate with incoming next domain req (map key to nonce queue?)
-        final String NONCE = getNonce();
+        final String NONCE = securityUtils.getNonce();
         context.addCookie(Cookie.cookie(STATE_KEY, NONCE));
 
         // your application requests authorization
@@ -60,19 +69,6 @@ public class RequestHandlersImpl implements RequestHandlers {
     @Override
     public void handleRefreshToken(RoutingContext routingContext) {
 
-    }
-
-    /**
-     * Get a nonce for an OAuth request.  OAuth defines the nonce as "a random
-     * string, uniquely generated for each request. The nonce allows the Service
-     * Provider to verify that a request has never been made before and helps
-     * prevent replay attacks when requests are made over a non-secure channel
-     * (such as HTTP)."
-     *
-     * @return the nonce string to use in an OAuth request
-     */
-    private static String getNonce() {
-        return Long.toString(System.nanoTime());
     }
 
     private void sendError(int statusCode, HttpServerResponse response) {

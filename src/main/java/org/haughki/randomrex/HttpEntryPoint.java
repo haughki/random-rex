@@ -19,9 +19,6 @@ package org.haughki.randomrex;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.AsyncResultHandler;
-import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -30,6 +27,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CookieHandler;
 import io.vertx.ext.web.handler.StaticHandler;
+import org.haughki.randomrex.util.IdAndWorkingDir;
 import org.haughki.randomrex.util.Runner;
 
 import java.util.HashMap;
@@ -41,9 +39,13 @@ import java.util.Map;
  */
 public class HttpEntryPoint extends AbstractVerticle {
 
+    public static final int PORT = 8888;
+    private static final String HOST = "localhost";
+
     // Convenience method so you can run it in your IDE
     public static void main(String[] args) {
-        Runner.runExample(HttpEntryPoint.class);
+        Runner runner = new Runner(new IdAndWorkingDir(HttpEntryPoint.class));
+        runner.run();
     }
 
     private Map<String, JsonObject> products = new HashMap<>();
@@ -69,10 +71,11 @@ public class HttpEntryPoint extends AbstractVerticle {
         router.route().handler(StaticHandler.create());  // defaults to webroot
 
         vertx.createHttpServer().requestHandler(router::accept)
-                .listen(8888, "localhost", new AsyncResultHandler<HttpServer>() {
-                    @Override
-                    public void handle(AsyncResult<HttpServer> asyncResult) {
-                        System.out.println("Server started. Listening? --> " + asyncResult.succeeded());
+                .listen(PORT, "localhost", res -> {
+                    if (res.succeeded()) {
+                        System.out.println("Server started at " + HOST + ":" + PORT);
+                    } else {
+                        System.out.println("ERROR: Server failed to start!");
                     }
                 });
     }
