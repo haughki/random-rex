@@ -11,4 +11,6 @@ public interface SecurityUtils {
      * @return the nonce string to use in an OAuth request
      */
     String getNonce();
+
+    boolean isNonceValid(String nonce);
 }

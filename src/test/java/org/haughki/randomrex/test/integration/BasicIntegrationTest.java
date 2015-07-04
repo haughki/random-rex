@@ -2,17 +2,22 @@ package org.haughki.randomrex.test.integration;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpServer;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.haughki.randomrex.HttpEntryPoint;
 import org.haughki.randomrex.util.IdAndWorkingDir;
 import org.haughki.randomrex.util.Runner;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.List;
 
 /*
  * Example of an asynchronous unit test written in JUnit style using vertx-unit
@@ -22,35 +27,83 @@ import org.junit.runner.RunWith;
 @RunWith(VertxUnitRunner.class)
 public class BasicIntegrationTest {
 
-    Vertx vertx;
-    HttpServer server;
+    private static Vertx vertx;
 
-    @Before
-    public void before(TestContext context) {
-
+    @BeforeClass
+    public static void oneTimeSetUp(TestContext context) {
         final IdAndWorkingDir builder = new IdAndWorkingDir(HttpEntryPoint.class);
         vertx = Vertx.vertx();
         Runner runner = new Runner(builder, context.asyncAssertSuccess(), vertx);
         runner.run();
     }
 
-    @After
-    public void after(TestContext context) {
+
+    @AfterClass
+    public static void oneTimeTearDown(TestContext context) {
         vertx.close(context.asyncAssertSuccess());
     }
 
     @Test
-    public void test1(TestContext context) {
+    public void testGetIndexBasicHappyPath(TestContext context) {
         // Send a request and get a response
         HttpClient client = vertx.createHttpClient();
         Async async = context.async();
         client.getNow(HttpEntryPoint.PORT, "localhost", "/", resp -> {
+            context.assertEquals(200, resp.statusCode());
             resp.bodyHandler(body -> {
                 String htmlString = body.toString("UTF-8");
                 context.assertNotEquals(-1, htmlString.indexOf("<title>Example of the Authorization Code flow"));
                 client.close();
                 async.complete();
             });
+        });
+    }
+
+    @Test
+    public void testLoginBasicHappyPath(TestContext context) {
+        // Send a request and get a response
+        HttpClient client = vertx.createHttpClient();
+        Async async = context.async();
+        client.getNow(HttpEntryPoint.PORT, "localhost", "/login", resp -> {
+            context.assertEquals(303, resp.statusCode());
+            context.assertEquals("See Other", resp.statusMessage());
+
+            List<NameValuePair> queryString = null;
+            try {
+                queryString = URLEncodedUtils.parse(new URI(resp.getHeader("Location")), "UTF-8");
+            } catch (URISyntaxException e) {
+                context.fail(e);
+            }
+
+            context.assertNotNull(queryString);
+            context.assertEquals(5, queryString.size());
+
+            client.close();
+            async.complete();
+        });
+    }
+
+    @Test
+    public void testCallbackBasicHappyPath(TestContext context) {
+        // Send a request and get a response
+        HttpClient client = vertx.createHttpClient();
+        Async async = context.async();
+        client.getNow(HttpEntryPoint.PORT, "localhost", "/callback", resp -> {
+            context.assertEquals(303, resp.statusCode());
+            context.assertEquals("See Other", resp.statusMessage());
+
+            List<NameValuePair> queryString = null;
+            try {
+                queryString = URLEncodedUtils.parse(new URI(resp.getHeader("Location")), "UTF-8");
+            } catch (URISyntaxException e) {
+                context.fail(e);
+            }
+
+            context.assertNotNull(queryString);
+            context.assertEquals(5, queryString.size());
+
+            client.close();
+            async.complete();
         });
     }
 }
