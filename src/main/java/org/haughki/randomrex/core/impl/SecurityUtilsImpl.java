@@ -1,6 +1,17 @@
 package org.haughki.randomrex.core.impl;
 
+import com.google.inject.Inject;
+import org.haughki.randomrex.core.NonceManager;
+
 public class SecurityUtilsImpl implements org.haughki.randomrex.core.SecurityUtils {
+
+    private final NonceManager nonceManager;
+
+    @Inject
+    public SecurityUtilsImpl(NonceManager nonceManager) {
+        this.nonceManager = nonceManager;
+    }
+
     /**
      * Get a nonce for an OAuth request.
      *
@@ -8,11 +19,11 @@ public class SecurityUtilsImpl implements org.haughki.randomrex.core.SecurityUti
      */
     @Override
     public String getNonce() {
-        return Nonce.nextNonce().toString();
+        return nonceManager.nextNonce();
     }
 
     @Override
     public boolean isNonceValid(String nonce) {
-        return NonceValidator.isNonceValid(nonce);
+        return nonceManager.isNonceValid(nonce);
     }
 }

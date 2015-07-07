@@ -1,7 +1,6 @@
 package org.haughki.randomrex.test.unit.core.impl;
 
-import org.haughki.randomrex.core.SecurityUtils;
-import org.haughki.randomrex.core.impl.SecurityUtilsImpl;
+import org.haughki.randomrex.core.impl.Nonce;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -10,13 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-public class SecurityUtilsImplTest {
-
-    private SecurityUtils securityUtils;
+public class NonceTest {
 
     @Before
     public void setUp() throws Exception {
-        securityUtils = new SecurityUtilsImpl();
     }
 
     @Test
@@ -24,7 +20,7 @@ public class SecurityUtilsImplTest {
         // get nonces as fast as you can
         final List<String> nonces = new ArrayList<>();
         for (int i = 0; i < 1000; i++) {
-            nonces.add(securityUtils.getNonce());
+            nonces.add(Nonce.nextNonce().toString());
         }
 
         for (int i = 0; i < nonces.size(); i++) {
@@ -40,11 +36,5 @@ public class SecurityUtilsImplTest {
                 }
             }
         }
-    }
-
-    @Test
-    public void testNonceIsValid() throws Exception {
-        final String nonce = securityUtils.getNonce();
-        Assert.assertTrue(securityUtils.isNonceValid(nonce));
     }
 }

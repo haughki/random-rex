@@ -1,8 +1,6 @@
 package org.haughki.randomrex.test.unit.impl;
 
-import com.google.inject.Guice;
 import com.google.inject.Inject;
-import org.haughki.randomrex.DependencyConfiguration;
 import org.haughki.randomrex.RequestHandlers;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,7 +14,7 @@ public class RequestHandlersImplTest {
 
     @Before
     public void setUp() throws Exception {
-        Guice.createInjector(new DependencyConfiguration()).injectMembers(this);
+        //Guice.createInjector(new DependencyConfiguration()).injectMembers(this);
     }
 
     @Test

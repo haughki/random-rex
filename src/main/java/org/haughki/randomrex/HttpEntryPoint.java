@@ -58,7 +58,8 @@ public class HttpEntryPoint extends AbstractVerticle {
         System.out.println("Starting server...");
         System.out.println("user.dir:" + System.getProperty("user.dir"));
 
-        Guice.createInjector(new DependencyConfiguration()).injectMembers(this);
+
+        Guice.createInjector(new DependencyConfiguration(vertx)).injectMembers(this);
 
         Router router = Router.router(vertx);
 
