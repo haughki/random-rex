@@ -1,5 +1,7 @@
 package org.haughki.randomrex.core;
 
+import io.vertx.core.Handler;
+
 public interface SecurityUtils {
     /**
      * Get a nonce for an OAuth request.  OAuth defines the nonce as "a random
@@ -12,5 +14,5 @@ public interface SecurityUtils {
      */
     String getNonce();
 
-    boolean isNonceValid(String nonce);
+    void isNonceValid(String nonce, Handler<Boolean> handler);
 }

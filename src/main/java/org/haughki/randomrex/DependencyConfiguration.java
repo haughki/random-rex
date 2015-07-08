@@ -16,9 +16,11 @@ import org.haughki.randomrex.impl.RequestHandlersImpl;
 public class DependencyConfiguration extends AbstractModule {
 
     private final Vertx vertx;
+    private final String dbName;
 
-    public DependencyConfiguration(Vertx vertx) {
+    public DependencyConfiguration(final Vertx vertx, final String dbName) {
         this.vertx = vertx;
+        this.dbName = dbName;
     }
 
     @Override
@@ -38,7 +40,7 @@ public class DependencyConfiguration extends AbstractModule {
         // Create a mongo client using all defaults (connect to localhost and default port)
         // using the database name "demo".
         // TODO choose a real db name and configure mongo with a config file...
-        return MongoClient.createShared(vertx, new JsonObject().put("db_name", "random-rex"));
+        return MongoClient.createShared(vertx, new JsonObject().put("db_name", dbName));
     }
 }
 

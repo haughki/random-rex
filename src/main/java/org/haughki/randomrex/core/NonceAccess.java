@@ -1,12 +1,13 @@
 package org.haughki.randomrex.core;
 
-import org.haughki.randomrex.core.impl.Nonce;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 
 public interface NonceAccess {
-    void addNonce(String nonce);
+    void addNonce(final String nonce);
 
-    String getNonce(String nonce);
+    void getNonce(final String nonce, final Handler<AsyncResult<String>> handler);
 
-    void deleteNonce(String nonce);
+    void deleteNonce(final String nonce);
 
 }

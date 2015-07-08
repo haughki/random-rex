@@ -1,6 +1,7 @@
 package org.haughki.randomrex.core.impl;
 
 import com.google.inject.Inject;
+import io.vertx.core.Handler;
 import org.haughki.randomrex.core.NonceManager;
 
 public class SecurityUtilsImpl implements org.haughki.randomrex.core.SecurityUtils {
@@ -23,7 +24,10 @@ public class SecurityUtilsImpl implements org.haughki.randomrex.core.SecurityUti
     }
 
     @Override
-    public boolean isNonceValid(String nonce) {
-        return nonceManager.isNonceValid(nonce);
+    public void isNonceValid(String nonce, Handler<Boolean> handler) {
+        handler.handle(false);
+/*        nonceManager.isNonceValid(nonce, isValid -> {
+            handler.handle(isValid);
+        });*/
     }
 }
