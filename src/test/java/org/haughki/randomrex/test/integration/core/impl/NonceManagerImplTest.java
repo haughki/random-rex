@@ -56,10 +56,10 @@ public class NonceManagerImplTest {
         final String nonce = Nonce.nextNonce().toString();
         final long currSecs = System.currentTimeMillis() / 1000;
         JsonObject nonceObj = new JsonObject()
-                .put(NonceAccessImpl.NONCE, nonce)
-                .put(NonceAccessImpl.CREATED, currSecs)
-                .put(NonceAccessImpl.EXPIRES, currSecs - 1);  // add expired nonce
-        mongoClient.insert(NonceAccessImpl.NONCES, nonceObj, res -> {
+                .put(NonceAccessImpl.NONCE_KEY, nonce)
+                .put(NonceAccessImpl.CREATED_KEY, currSecs)
+                .put(NonceAccessImpl.EXPIRES_KEY, currSecs - 1);  // add expired nonce
+        mongoClient.insert(NonceAccessImpl.NONCES_COLLECTION, nonceObj, res -> {
         });
 
         nonceManager.isNonceValid(nonce, context.asyncAssertSuccess(isValid -> {

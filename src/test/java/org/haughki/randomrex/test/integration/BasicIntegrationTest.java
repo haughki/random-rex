@@ -7,7 +7,7 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
-import org.haughki.randomrex.HttpEntryPoint;
+import org.haughki.randomrex.ServerStart;
 import org.haughki.randomrex.util.IdAndWorkingDir;
 import org.haughki.randomrex.util.Runner;
 import org.junit.AfterClass;
@@ -31,7 +31,7 @@ public class BasicIntegrationTest {
 
     @BeforeClass
     public static void oneTimeSetUp(TestContext context) {
-        final IdAndWorkingDir builder = new IdAndWorkingDir(HttpEntryPoint.class);
+        final IdAndWorkingDir builder = new IdAndWorkingDir(ServerStart.class);
         vertx = Vertx.vertx();
         Runner runner = new Runner(builder, context.asyncAssertSuccess(), vertx);
         runner.run();
@@ -48,7 +48,7 @@ public class BasicIntegrationTest {
         // Send a request and get a response
         HttpClient client = vertx.createHttpClient();
         Async async = context.async();
-        client.getNow(HttpEntryPoint.PORT, "localhost", "/", resp -> {
+        client.getNow(ServerStart.PORT, "localhost", "/", resp -> {
             context.assertEquals(200, resp.statusCode());
             resp.bodyHandler(body -> {
                 String htmlString = body.toString("UTF-8");
@@ -64,7 +64,7 @@ public class BasicIntegrationTest {
         // Send a request and get a response
         HttpClient client = vertx.createHttpClient();
         Async async = context.async();
-        client.getNow(HttpEntryPoint.PORT, "localhost", "/login", resp -> {
+        client.getNow(ServerStart.PORT, "localhost", "/login", resp -> {
             context.assertEquals(303, resp.statusCode());
             context.assertEquals("See Other", resp.statusMessage());
 
@@ -88,7 +88,7 @@ public class BasicIntegrationTest {
         // Send a request and get a response
         HttpClient client = vertx.createHttpClient();
         Async async = context.async();
-        client.getNow(HttpEntryPoint.PORT, "localhost", "/callback", resp -> {
+        client.getNow(ServerStart.PORT, "localhost", "/callback", resp -> {
             context.assertEquals(303, resp.statusCode());
             context.assertEquals("See Other", resp.statusMessage());
 

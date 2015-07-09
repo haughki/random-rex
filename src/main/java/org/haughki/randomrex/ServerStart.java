@@ -19,17 +19,15 @@ package org.haughki.randomrex;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CookieHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 import org.haughki.randomrex.util.IdAndWorkingDir;
 import org.haughki.randomrex.util.Runner;
 
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,14 +35,14 @@ import java.util.Map;
  * @author <a href="parker.hawkeye@gmail.com">Hawkeye Parker</a>. Origin from
  *         sample code by <a href="http://tfox.org">Tim Fox</a>.
  */
-public class HttpEntryPoint extends AbstractVerticle {
+public class ServerStart extends AbstractVerticle {
 
     public static final int PORT = 8888;
     private static final String HOST = "localhost";
 
     // Convenience method so you can run it in your IDE
     public static void main(String[] args) {
-        Runner runner = new Runner(new IdAndWorkingDir(HttpEntryPoint.class));
+        Runner runner = new Runner(new IdAndWorkingDir(ServerStart.class));
         runner.run();
     }
 
@@ -58,7 +56,8 @@ public class HttpEntryPoint extends AbstractVerticle {
         System.out.println("Starting server...");
         System.out.println("user.dir:" + System.getProperty("user.dir"));
 
-
+        URL one = this.getClass().getClassLoader().getResource("mongodb/");
+        URL two = this.getClass().getClassLoader().getResource("mongodb/setupdb.js");
         Guice.createInjector(new DependencyConfiguration(vertx, "random-rex")).injectMembers(this);
 
         Router router = Router.router(vertx);
@@ -79,46 +78,5 @@ public class HttpEntryPoint extends AbstractVerticle {
                         System.out.println("ERROR: Server failed to start!");
                     }
                 });
-    }
-
-    private void handleGetProduct(RoutingContext routingContext) {
-        String productID = routingContext.request().getParam("productID");
-        HttpServerResponse response = routingContext.response();
-        if (productID == null) {
-            sendError(400, response);
-        } else {
-            JsonObject product = products.get(productID);
-            if (product == null) {
-                sendError(404, response);
-            } else {
-                response.putHeader("content-type", "application/json").end(product.encodePrettily());
-            }
-        }
-    }
-
-    private void handleAddProduct(RoutingContext routingContext) {
-        String productID = routingContext.request().getParam("productID");
-        HttpServerResponse response = routingContext.response();
-        if (productID == null) {
-            sendError(400, response);
-        } else {
-            JsonObject product = routingContext.getBodyAsJson();
-            if (product == null) {
-                sendError(400, response);
-            } else {
-                products.put(productID, product);
-                response.end();
-            }
-        }
-    }
-
-    private void handleListProducts(RoutingContext routingContext) {
-        JsonArray arr = new JsonArray();
-        products.forEach((k, v) -> arr.add(v));
-        routingContext.response().putHeader("content-type", "application/json").end(arr.encodePrettily());
-    }
-
-    private void sendError(int statusCode, HttpServerResponse response) {
-        response.setStatusCode(statusCode).end();
     }
 }

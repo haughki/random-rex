@@ -26,13 +26,18 @@ public class NonceManagerImpl implements NonceManager {
     @Override
     public void isNonceValid(final String nonce, Handler<AsyncResult<Boolean>> handler) {
         nonceAccess.getNonce(nonce, res -> {
-            final String foundNonce = res.result();
-            handler.handle(Future.succeededFuture(foundNonce != null && foundNonce != ""));
+            if (res.succeeded()) {
+                final String foundNonce = res.result();
+                handler.handle(Future.succeededFuture(foundNonce != null && foundNonce != ""));
+            } else {
+                handler.handle(Future.failedFuture(res.cause()));
+            }
         });
     }
 
+
     // TODO implement -- should periodically wake up and remove all
-    // expired nonces
+    // expired nonces -- better:  use Mongo's TTL index.  See NonceAccessImpl.addNonce()
     private void deleteExpiredNonces() {
     }
 }

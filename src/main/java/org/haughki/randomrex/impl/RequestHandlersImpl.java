@@ -6,7 +6,7 @@ import io.vertx.ext.web.Cookie;
 import io.vertx.ext.web.RoutingContext;
 import org.apache.http.client.utils.URIBuilder;
 import org.haughki.randomrex.RequestHandlers;
-import org.haughki.randomrex.core.SecurityUtils;
+import org.haughki.randomrex.core.NonceManager;
 
 import java.net.URISyntaxException;
 
@@ -17,11 +17,11 @@ public class RequestHandlersImpl implements RequestHandlers {
     private final static String REDIRECT_URI = "http://localhost:8888/callback";
     private final static String STATE_KEY = "spotify_auth_state";
 
-    private final SecurityUtils securityUtils;
+    private final NonceManager nonceManager;
 
     @Inject
-    public RequestHandlersImpl(SecurityUtils securityUtils) {
-        this.securityUtils = securityUtils;
+    public RequestHandlersImpl(NonceManager nonceManager) {
+        this.nonceManager = nonceManager;
     }
 
     @Override
@@ -31,7 +31,7 @@ public class RequestHandlersImpl implements RequestHandlers {
         // AND send it on the query string? Also seems like we'd need to at least remember
         // (persist) sent nonce's and verify against incoming reqs.  Really should
         // correlate with incoming next domain req (map key to nonce queue?)
-        final String NONCE = securityUtils.getNonce();
+        final String NONCE = nonceManager.nextNonce();
         context.addCookie(Cookie.cookie(STATE_KEY, NONCE));
 
         // your application requests authorization

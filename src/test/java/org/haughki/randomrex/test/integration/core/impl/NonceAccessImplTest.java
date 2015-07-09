@@ -42,9 +42,9 @@ public class NonceAccessImplTest {
     public void testGetNonce(TestContext context) throws Exception {
         final String nonce = Nonce.nextNonce().toString();
         nonceAccess.addNonce(nonce);
-        nonceAccess.getNonce(nonce, foundNonce -> {
+        nonceAccess.getNonce(nonce, context.asyncAssertSuccess(foundNonce -> {
             context.assertEquals(nonce, foundNonce);
-        });
+        }));
     }
 
     @Test
@@ -52,15 +52,24 @@ public class NonceAccessImplTest {
         final String nonce = Nonce.nextNonce().toString();
         final long currSecs = System.currentTimeMillis() / 1000;
         JsonObject nonceObj = new JsonObject()
-                .put(NonceAccessImpl.NONCE, nonce)
-                .put(NonceAccessImpl.CREATED, currSecs)
-                .put(NonceAccessImpl.EXPIRES, currSecs - 1);  // add expired nonce
-        mongoClient.insert(NonceAccessImpl.NONCES, nonceObj, res -> {
+                .put(NonceAccessImpl.NONCE_KEY, nonce)
+                .put(NonceAccessImpl.CREATED_KEY, currSecs)
+                .put(NonceAccessImpl.EXPIRES_KEY, currSecs - 1);  // add expired nonce
+        mongoClient.insert(NonceAccessImpl.NONCES_COLLECTION, nonceObj, res -> {
         });
 
         nonceAccess.getNonce(nonce, context.asyncAssertSuccess(res -> {
             context.assertEquals("", res);
         }));
+    }
+
+    @Test
+    public void testAddDuplicateNonceFails(TestContext context) throws Exception {
+        final String nonce = Nonce.nextNonce().toString();
+        JsonObject nonceObj = new JsonObject().put(NonceAccessImpl.NONCE_KEY, nonce);
+        JsonObject sameNonceObj = new JsonObject().put(NonceAccessImpl.NONCE_KEY, nonce);
+        mongoClient.insert(NonceAccessImpl.NONCES_COLLECTION, nonceObj, context.asyncAssertSuccess());
+        mongoClient.insert(NonceAccessImpl.NONCES_COLLECTION, sameNonceObj, context.asyncAssertSuccess());
     }
 
     @Test
