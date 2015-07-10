@@ -5,6 +5,7 @@ import com.google.inject.Inject;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClient;
+import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.haughki.randomrex.DependencyConfiguration;
@@ -26,25 +27,37 @@ public class NonceAccessImplTest {
     @Inject
     private MongoClient mongoClient;
 
-
     @Before
     public void setUp(TestContext context) throws Exception {
         Guice.createInjector(new DependencyConfiguration(vertx, TestDb.TEST_DB_NAME)).injectMembers(this);
-        TestDb.setUp(mongoClient, context);
+        TestDb.setUp(vertx, mongoClient, context, context.asyncAssertSuccess());
+/*
+        Async async = context.async();
+        async.complete();
+*/
     }
 
     @After
     public void tearDown(TestContext context) throws Exception {
-        TestDb.tearDown(mongoClient, context);
+        TestDb.tearDown(mongoClient, res -> {
+            if (res.failed()) {
+                context.fail(res.cause());
+            } else {
+                vertx.close();
+            }
+        });
     }
 
     @Test
     public void testGetNonce(TestContext context) throws Exception {
         final String nonce = Nonce.nextNonce().toString();
-        nonceAccess.addNonce(nonce);
-        nonceAccess.getNonce(nonce, context.asyncAssertSuccess(foundNonce -> {
-            context.assertEquals(nonce, foundNonce);
-        }));
+        Async async = context.async();
+        nonceAccess.addNonce(nonce, addResult -> {
+            nonceAccess.findNonce(nonce, foundNonce -> {
+                context.assertEquals(nonce, foundNonce.result());
+                async.complete();
+            });
+        });
     }
 
     @Test
@@ -55,25 +68,47 @@ public class NonceAccessImplTest {
                 .put(NonceAccessImpl.NONCE_KEY, nonce)
                 .put(NonceAccessImpl.CREATED_KEY, currSecs)
                 .put(NonceAccessImpl.EXPIRES_KEY, currSecs - 1);  // add expired nonce
+        Async async = context.async();
         mongoClient.insert(NonceAccessImpl.NONCES_COLLECTION, nonceObj, res -> {
+            nonceAccess.findNonce(nonce, foundNonce -> {
+                context.assertEquals("", foundNonce.result());
+                async.complete();
+            });
         });
-
-        nonceAccess.getNonce(nonce, context.asyncAssertSuccess(res -> {
-            context.assertEquals("", res);
-        }));
-    }
-
-    @Test
-    public void testAddDuplicateNonceFails(TestContext context) throws Exception {
-        final String nonce = Nonce.nextNonce().toString();
-        JsonObject nonceObj = new JsonObject().put(NonceAccessImpl.NONCE_KEY, nonce);
-        JsonObject sameNonceObj = new JsonObject().put(NonceAccessImpl.NONCE_KEY, nonce);
-        mongoClient.insert(NonceAccessImpl.NONCES_COLLECTION, nonceObj, context.asyncAssertSuccess());
-        mongoClient.insert(NonceAccessImpl.NONCES_COLLECTION, sameNonceObj, context.asyncAssertSuccess());
     }
 
     @Test
     public void testDeleteNonce(TestContext context) throws Exception {
+        final String nonce = Nonce.nextNonce().toString();
+        Async async = context.async();
+        nonceAccess.addNonce(nonce, addResult -> {
+            context.assertTrue(addResult.succeeded());
+            nonceAccess.deleteNonce(nonce, deleteResult -> {
+                context.assertTrue(deleteResult.succeeded());
+                nonceAccess.findNonce(nonce, foundNonce -> {
+                    context.assertEquals("", foundNonce.result());
+                    async.complete();
+                });
+            });
+        });
+    }
 
+    @Test
+    public void testAddDuplicateNonceFails(TestContext context) throws Exception {
+        // Note that this is really testing correct setup of the unique index on the nonce field
+        // in the db
+        final String nonce = Nonce.nextNonce().toString();
+        final JsonObject nonceObj = new JsonObject().put(NonceAccessImpl.NONCE_KEY, nonce);
+        final JsonObject sameNonceObj = new JsonObject().put(NonceAccessImpl.NONCE_KEY, nonce);
+        Async async = context.async();
+        mongoClient.insert(NonceAccessImpl.NONCES_COLLECTION, nonceObj, res -> {
+                    context.assertTrue(res.result().length() > 0);
+                    mongoClient.insert(NonceAccessImpl.NONCES_COLLECTION, sameNonceObj, context.asyncAssertFailure(throwable -> {
+                        context.assertEquals(com.mongodb.MongoWriteException.class, throwable.getClass());
+                        context.assertNotEquals(-1, throwable.getMessage().indexOf("E11000 duplicate key error index"));
+                        async.complete();
+                    }));
+                }
+        );
     }
 }

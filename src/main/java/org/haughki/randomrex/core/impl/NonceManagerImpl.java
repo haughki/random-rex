@@ -17,15 +17,20 @@ public class NonceManagerImpl implements NonceManager {
     }
 
     @Override
-    public String nextNonce() {
-        String nonce = Nonce.nextNonce().toString();
-        nonceAccess.addNonce(nonce);
-        return nonce;
+    public void nextNonce(final Handler<AsyncResult<String>> handler) {
+        final String nonce = Nonce.nextNonce().toString();
+        nonceAccess.addNonce(nonce, res -> {
+            if (res.succeeded()) {
+                handler.handle(Future.succeededFuture(nonce));
+            } else {
+                handler.handle(Future.failedFuture(res.cause()));
+            }
+        });
     }
 
     @Override
     public void isNonceValid(final String nonce, Handler<AsyncResult<Boolean>> handler) {
-        nonceAccess.getNonce(nonce, res -> {
+        nonceAccess.findNonce(nonce, res -> {
             if (res.succeeded()) {
                 final String foundNonce = res.result();
                 handler.handle(Future.succeededFuture(foundNonce != null && foundNonce != ""));

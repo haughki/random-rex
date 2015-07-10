@@ -5,6 +5,7 @@ import com.google.inject.Inject;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClient;
+import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.haughki.randomrex.DependencyConfiguration;
@@ -19,7 +20,6 @@ import org.junit.runner.RunWith;
 @RunWith(VertxUnitRunner.class)
 public class NonceManagerImplTest {
     private final Vertx vertx = Vertx.vertx();
-    //private final static String TEST_DB = "random-rex-test";
 
     @Inject
     private NonceManager nonceManager;
@@ -28,27 +28,31 @@ public class NonceManagerImplTest {
 
     @Before
     public void setUp(TestContext context) throws Exception {
-        Guice.createInjector(new DependencyConfiguration(vertx, "random-rex-test")).injectMembers(this);
-
-        mongoClient.find("nonces", new JsonObject(), context.asyncAssertSuccess(res -> {
-            context.assertEquals(0, res.size()); // make sure the db is clean
-        }));
+        Guice.createInjector(new DependencyConfiguration(vertx, TestDb.TEST_DB_NAME)).injectMembers(this);
+        TestDb.setUp(vertx, mongoClient, context, context.asyncAssertSuccess());
     }
 
     @After
     public void tearDown(TestContext context) throws Exception {
-        // drop the test database to clean up for next run.  runs regardless of success/failure.
-        JsonObject command = new JsonObject().put("dropDatabase", 1);
-        mongoClient.runCommand("dropDatabase", command, res -> {
+        TestDb.tearDown(mongoClient, res -> {
+            if (res.failed()) {
+                context.fail(res.cause());
+            } else {
+                vertx.close();
+            }
         });
     }
 
     @Test
     public void testIsNonceValid(TestContext context) throws Exception {
-        final String nonce = nonceManager.nextNonce();
-        nonceManager.isNonceValid(nonce, context.asyncAssertSuccess(isValid -> {
-            context.assertTrue(isValid);
-        }));
+        final Async async = context.async();
+        nonceManager.nextNonce(foundNonce -> {
+            context.assertTrue(foundNonce.succeeded());
+            nonceManager.isNonceValid(foundNonce.result(), isValidResult -> {
+                context.assertTrue(isValidResult.result());
+                async.complete();
+            });
+        });
     }
 
     @Test
@@ -59,11 +63,13 @@ public class NonceManagerImplTest {
                 .put(NonceAccessImpl.NONCE_KEY, nonce)
                 .put(NonceAccessImpl.CREATED_KEY, currSecs)
                 .put(NonceAccessImpl.EXPIRES_KEY, currSecs - 1);  // add expired nonce
-        mongoClient.insert(NonceAccessImpl.NONCES_COLLECTION, nonceObj, res -> {
-        });
 
-        nonceManager.isNonceValid(nonce, context.asyncAssertSuccess(isValid -> {
-            context.assertFalse(isValid);
-        }));
+        final Async async = context.async();
+        mongoClient.insert(NonceAccessImpl.NONCES_COLLECTION, nonceObj, res -> {
+            nonceManager.isNonceValid(nonce, isValidResult -> {
+                context.assertFalse(isValidResult.result());
+                async.complete();
+            });
+        });
     }
 }

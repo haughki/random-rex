@@ -31,34 +31,40 @@ public class RequestHandlersImpl implements RequestHandlers {
         // AND send it on the query string? Also seems like we'd need to at least remember
         // (persist) sent nonce's and verify against incoming reqs.  Really should
         // correlate with incoming next domain req (map key to nonce queue?)
-        final String NONCE = nonceManager.nextNonce();
-        context.addCookie(Cookie.cookie(STATE_KEY, NONCE));
+        nonceManager.nextNonce(res -> {
+            if (!res.succeeded()) {
+                throw new RuntimeException("Failed to get a new nonce.", res.cause());
+            } else {
+                final String NONCE = res.result();
+                context.addCookie(Cookie.cookie(STATE_KEY, NONCE));
 
-        // your application requests authorization
-        //var scope = 'user-read-private user-read-email';  // may need one or more of these
-        final String SCOPE = "user-library-read";
-        //context.response().setStatusCode(302);  // Found.  Might work better...?
-        context.response().setStatusCode(303);
-        context.response().setStatusMessage("See Other");
+                // your application requests authorization
+                //var scope = 'user-read-private user-read-email';  // may need one or more of these
+                final String SCOPE = "user-library-read";
+                //context.response().setStatusCode(302);  // Found.  Might work better...?
+                context.response().setStatusCode(303);
+                context.response().setStatusMessage("See Other");
 
-        URIBuilder spotifyAuthUri = null;
-        try {
-            spotifyAuthUri = new URIBuilder("https://accounts.spotify.com/authorize");
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-            sendError(500, context.response());
-        }
-        if (spotifyAuthUri != null) {
-            spotifyAuthUri.addParameter("response_type", "code");
-            spotifyAuthUri.addParameter("client_id", CLIENT_ID);
-            spotifyAuthUri.addParameter("scope", SCOPE);
-            spotifyAuthUri.addParameter("redirect_uri", REDIRECT_URI);
-            spotifyAuthUri.addParameter("state", NONCE);
+                URIBuilder spotifyAuthUri = null;
+                try {
+                    spotifyAuthUri = new URIBuilder("https://accounts.spotify.com/authorize");
+                } catch (URISyntaxException e) {
+                    e.printStackTrace();
+                    sendError(500, context.response());
+                }
+                if (spotifyAuthUri != null) {
+                    spotifyAuthUri.addParameter("response_type", "code");
+                    spotifyAuthUri.addParameter("client_id", CLIENT_ID);
+                    spotifyAuthUri.addParameter("scope", SCOPE);
+                    spotifyAuthUri.addParameter("redirect_uri", REDIRECT_URI);
+                    spotifyAuthUri.addParameter("state", NONCE);
 
-            context.response().putHeader("Location", spotifyAuthUri.toString());
+                    context.response().putHeader("Location", spotifyAuthUri.toString());
 
-            context.response().end();
-        }
+                    context.response().end();
+                }
+            }
+        });
     }
 
     @Override

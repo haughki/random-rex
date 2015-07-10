@@ -38,21 +38,27 @@ public class NonceAccessImpl implements NonceAccess {
      * see also http://diabolicallab.com/store-dates-with-vertx-mongo-persistor/
      * http://docs.mongodb.org/manual/tutorial/expire-data/
      *
-     * @param nonce a nonce string from Nonce.nextNonce()
+     * @param nonce   a nonce string from Nonce.nextNonce()
+     * @param handler
      */
     @Override
-    public void addNonce(final String nonce) {
+    public void addNonce(final String nonce, final Handler<AsyncResult<String>> handler) {
         final long currSecs = System.currentTimeMillis() / 1000;
         JsonObject nonceObj = new JsonObject()
                 .put(NONCE_KEY, nonce)
                 .put(CREATED_KEY, currSecs)
                 .put(EXPIRES_KEY, currSecs + 300);
-        mongoClient.insert(NONCES_COLLECTION, nonceObj, res -> {
-        }); // noop lambda - don't care about the response unless there's an error in which case it should throw
+        mongoClient.insert(NONCES_COLLECTION, nonceObj, res -> handler.handle(res));
     }
 
+    /**
+     * returns a nonce only if the nonce is not expired.
+     *
+     * @param nonce
+     * @param handler
+     */
     @Override
-    public void getNonce(final String nonce, final Handler<AsyncResult<String>> handler) {
+    public void findNonce(final String nonce, final Handler<AsyncResult<String>> handler) {
         long currSecs = System.currentTimeMillis() / 1000;
 
         JsonObject query = new JsonObject()
@@ -72,9 +78,9 @@ public class NonceAccessImpl implements NonceAccess {
         });
     }
 
-    // TODO implement
     @Override
-    public void deleteNonce(final String nonce) {
-
+    public void deleteNonce(final String nonce, final Handler<AsyncResult<Void>> handler) {
+        JsonObject query = new JsonObject().put(NONCE_KEY, nonce);
+        mongoClient.remove(NONCES_COLLECTION, query, res -> handler.handle(res));
     }
 }

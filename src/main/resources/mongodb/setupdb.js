@@ -1,6 +1,4 @@
 "use strict";
 
-var conn = new Mongo();
-var db = conn.getDB('random-rex-test');
-
-db.nonces.createIndex({'nonce': 1}, {'unique': true})
+// "db" is whatever db I connect to when I pass this script to mongo
+db.nonces.createIndex({'nonce': 1}, {'unique': true});
