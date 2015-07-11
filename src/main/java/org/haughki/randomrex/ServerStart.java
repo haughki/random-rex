@@ -43,7 +43,7 @@ public class ServerStart extends AbstractVerticle {
         Runner runner = new Runner(new IdAndWorkingDir(ServerStart.class));
         runner.run();
     }
-    
+
     @Inject
     private RequestHandlers handlers;
 
@@ -66,7 +66,7 @@ public class ServerStart extends AbstractVerticle {
                 router.put("/callback").handler(handlers::handleCallback);
                 router.get("/refreshToken").handler(handlers::handleRefreshToken);
 
-                router.route().handler(StaticHandler.create());  // defaults to webroot
+                router.route().handler(StaticHandler.create());  // defaults to "webroot/"
 
                 vertx.createHttpServer().requestHandler(router::accept)
                         .listen(PORT, "localhost", createServerResult -> {

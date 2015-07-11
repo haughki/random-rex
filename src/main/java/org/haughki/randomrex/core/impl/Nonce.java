@@ -60,9 +60,9 @@ public final class Nonce {
      *
      * @return the byte array.
      */
-    public byte[] getBytes() {
+/*    public byte[] getBytes() {
         return ArrayUtils.clone(nonce);
-    }
+    }*/
 
     /**
      * {@inheritDoc}

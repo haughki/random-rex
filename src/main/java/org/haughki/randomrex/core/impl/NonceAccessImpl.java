@@ -39,7 +39,7 @@ public class NonceAccessImpl implements NonceAccess {
      * http://docs.mongodb.org/manual/tutorial/expire-data/
      *
      * @param nonce   a nonce string from Nonce.nextNonce()
-     * @param handler
+     * @param handler handle the result of the add. Result should contain ID of created document
      */
     @Override
     public void addNonce(final String nonce, final Handler<AsyncResult<String>> handler) {
@@ -48,14 +48,14 @@ public class NonceAccessImpl implements NonceAccess {
                 .put(NONCE_KEY, nonce)
                 .put(CREATED_KEY, currSecs)
                 .put(EXPIRES_KEY, currSecs + 300);
-        mongoClient.insert(NONCES_COLLECTION, nonceObj, res -> handler.handle(res));
+        mongoClient.insert(NONCES_COLLECTION, nonceObj, handler::handle);
     }
 
     /**
      * returns a nonce only if the nonce is not expired.
      *
-     * @param nonce
-     * @param handler
+     * @param nonce   the nonce, from Nonce, to add
+     * @param handler handle the result, the nonce, if found, else ""
      */
     @Override
     public void findNonce(final String nonce, final Handler<AsyncResult<String>> handler) {
@@ -81,6 +81,6 @@ public class NonceAccessImpl implements NonceAccess {
     @Override
     public void deleteNonce(final String nonce, final Handler<AsyncResult<Void>> handler) {
         JsonObject query = new JsonObject().put(NONCE_KEY, nonce);
-        mongoClient.remove(NONCES_COLLECTION, query, res -> handler.handle(res));
+        mongoClient.remove(NONCES_COLLECTION, query, handler::handle);
     }
 }

@@ -49,6 +49,8 @@ public class Runner {
             };
         }
 
+        // paranoia
+        //noinspection ConstantConditions
         if (this.completionHandler == null)
             throw new IllegalArgumentException("completionHandler should not be null.");
 
@@ -59,6 +61,8 @@ public class Runner {
         else
             this.vertxOptions = null;
 
+        // paranoia
+        //noinspection ConstantConditions
         if (this.vertx != null && this.vertxOptions != null)
             throw new IllegalArgumentException("In this class, you can't set vertx options on an existing vertx instance.");
 
@@ -84,7 +88,7 @@ public class Runner {
                         Vertx newVertx = res.result();  // must use a new vertx instance here, not the member instance
                         runner.accept(newVertx);
                     } else {
-                        res.cause().printStackTrace();
+                        throw new RuntimeException("Failed to deploy clustered Vertx.", res.cause());
                     }
                 });
             } else {

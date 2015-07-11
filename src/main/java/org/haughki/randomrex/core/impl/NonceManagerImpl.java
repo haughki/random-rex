@@ -7,6 +7,8 @@ import io.vertx.core.Handler;
 import org.haughki.randomrex.core.NonceAccess;
 import org.haughki.randomrex.core.NonceManager;
 
+import java.util.Objects;
+
 public class NonceManagerImpl implements NonceManager {
 
     private final NonceAccess nonceAccess;
@@ -33,7 +35,7 @@ public class NonceManagerImpl implements NonceManager {
         nonceAccess.findNonce(nonce, res -> {
             if (res.succeeded()) {
                 final String foundNonce = res.result();
-                handler.handle(Future.succeededFuture(foundNonce != null && foundNonce != ""));
+                handler.handle(Future.succeededFuture(foundNonce != null && !Objects.equals(foundNonce, "")));
             } else {
                 handler.handle(Future.failedFuture(res.cause()));
             }
@@ -43,6 +45,6 @@ public class NonceManagerImpl implements NonceManager {
 
     // TODO implement -- should periodically wake up and remove all
     // expired nonces -- better:  use Mongo's TTL index.  See NonceAccessImpl.addNonce()
-    private void deleteExpiredNonces() {
-    }
+/*    private void deleteExpiredNonces() {
+    }*/
 }

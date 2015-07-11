@@ -31,7 +31,7 @@ public class DatabaseSetup {
                     future.fail(e);
                 }
                 future.complete();
-            }, res -> handler.handle(res));
+            }, handler::handle);
         }
     }
 
@@ -39,14 +39,14 @@ public class DatabaseSetup {
      * CONTAINS BLOCKING CODE!!
      ***/
     private static String executeSystemCommand(final String command) throws IOException, InterruptedException {
-        StringBuffer output = new StringBuffer();
+        StringBuilder output = new StringBuilder();
         Process p;
         p = Runtime.getRuntime().exec(command);
         p.waitFor();  // !! BLOCKING  !!
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                output.append(line + "\n");
+                output.append(line).append("\n");
             }
         }
 
