@@ -4,9 +4,9 @@ import io.vertx.ext.web.RoutingContext;
 
 
 public interface RequestHandlers {
-    void handleLogin(RoutingContext routingContext);
+    void handleLogin(final RoutingContext routingContext);
 
-    void handleCallback(RoutingContext routingContext);
+    void handleCallback(final RoutingContext routingContext);
 
-    void handleRefreshToken(RoutingContext routingContext);
+    void handleRefreshToken(final RoutingContext routingContext);
 }

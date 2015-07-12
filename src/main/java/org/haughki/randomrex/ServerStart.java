@@ -33,7 +33,7 @@ import org.haughki.randomrex.util.Runner;
  */
 public class ServerStart extends AbstractVerticle {
 
-    public static final int PORT = 8888;
+    public static final int PORT = 8899;
     public static final String MONGO_URL = "localhost:27017";
     public static final String DB_NAME = "random-rex";
     private static final String HOST = "localhost";
@@ -63,7 +63,7 @@ public class ServerStart extends AbstractVerticle {
                 router.route().handler(CookieHandler.create());
                 router.route().handler(BodyHandler.create());
                 router.get("/login").handler(handlers::handleLogin);
-                router.put("/callback").handler(handlers::handleCallback);
+                router.get("/callback").handler(handlers::handleCallback);
                 router.get("/refreshToken").handler(handlers::handleRefreshToken);
 
                 router.route().handler(StaticHandler.create());  // defaults to "webroot/"

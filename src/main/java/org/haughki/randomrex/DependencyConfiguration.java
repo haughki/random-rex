@@ -39,5 +39,10 @@ public class DependencyConfiguration extends AbstractModule {
         // TODO configure mongo with a config file...
         return MongoClient.createShared(vertx, new JsonObject().put("db_name", dbName));
     }
+
+    @Provides
+    Vertx getVertx() {
+        return this.vertx;
+    }
 }
 
