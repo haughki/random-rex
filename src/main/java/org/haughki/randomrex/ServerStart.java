@@ -19,6 +19,8 @@ package org.haughki.randomrex;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CookieHandler;
@@ -46,11 +48,14 @@ public class ServerStart extends AbstractVerticle {
 
     @Inject
     private RequestHandlers handlers;
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Override
     public void start() {
-        System.out.println("Starting server...");
-        System.out.println("user.dir:" + System.getProperty("user.dir"));
+
+
+        logger.info("Starting server...");
+        logger.info("user.dir:" + System.getProperty("user.dir"));
 
         Guice.createInjector(new DependencyConfiguration(vertx, DB_NAME)).injectMembers(this);
 
@@ -71,7 +76,7 @@ public class ServerStart extends AbstractVerticle {
                 vertx.createHttpServer().requestHandler(router::accept)
                         .listen(PORT, "localhost", createServerResult -> {
                             if (createServerResult.succeeded()) {
-                                System.out.println("Server started at " + HOST + ":" + PORT);
+                                logger.info("Server started at " + HOST + ":" + PORT);
                             } else {
                                 throw new RuntimeException("ERROR: server failed to start!", dbSetupResult.cause());
                             }

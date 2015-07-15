@@ -1,6 +1,8 @@
 package org.haughki.randomrex.util;
 
 import io.vertx.core.*;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 
 import java.util.function.Consumer;
 
@@ -16,6 +18,7 @@ public class Runner {
     private final VertxOptions vertxOptions;
     private final DeploymentOptions deploymentOptions;
     private final String verticleId;
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public Runner(final IdAndWorkingDir idAndWorkingDir) {
         this(idAndWorkingDir, null);
@@ -42,9 +45,9 @@ public class Runner {
         if (this.completionHandler == null) {
             this.completionHandler = res -> {  // default handler
                 if (res.succeeded()) {
-                    System.out.println("Deployment successful for: " + this.verticleId);
+                    logger.info("Deployment successful for: " + this.verticleId);
                 } else {
-                    System.out.println("ERROR: Deployment failed for: " + this.verticleId);
+                    logger.error("ERROR: Deployment failed for: " + this.verticleId);
                 }
             };
         }

@@ -4,6 +4,8 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -11,6 +13,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 
 public class DatabaseSetup {
+    private static final Logger logger = LoggerFactory.getLogger(DatabaseSetup.class);
 
     public static void runDatabaseSetup(final Vertx vertx,
                                         final String mongoUrl,
@@ -25,8 +28,8 @@ public class DatabaseSetup {
             final String command = "mongo " + mongoUrl + "/" + dbName + " " + setupDbUrl.getPath();
             vertx.executeBlocking(future -> {
                 try {
-                    System.out.println("Executing shell command: " + command);
-                    System.out.println("Command output: " + executeSystemCommand(command));
+                    logger.info("Executing shell command: " + command);
+                    logger.info("Command output: " + executeSystemCommand(command));
                 } catch (IOException | InterruptedException e) {
                     future.fail(e);
                 }

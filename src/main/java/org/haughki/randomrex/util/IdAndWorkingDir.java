@@ -1,14 +1,18 @@
 package org.haughki.randomrex.util;
 
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
+
 public class IdAndWorkingDir {
 
     private static final String JAVA_MAIN_DIR = "src/main/java/";
     private final String verticleId;
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public IdAndWorkingDir(final Class clazz) {
         this.verticleId = clazz.getName();
         final String vertxWorkingDir = buildVertxWorkingDir(JAVA_MAIN_DIR, clazz);
-        System.out.println("vertxWorkingDir: " + vertxWorkingDir);
+        logger.info("vertxWorkingDir: " + vertxWorkingDir);
         System.setProperty("vertx.cwd", vertxWorkingDir);
     }
 
